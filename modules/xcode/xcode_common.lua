@@ -969,9 +969,15 @@
 			Universal32 = "$(ARCHS_STANDARD_32_BIT)",
 			Universal64 = "$(ARCHS_STANDARD_64_BIT)",
 			Universal = "$(ARCHS_STANDARD_32_64_BIT)",
+			--iOS = "$(ARCHS_UNIVERSAL_IPHONE_OS)", -- Not needed, setting SDKROOT is enough.
 		}
 
 		settings['ARCHS'] = archs[cfg.platform or "Native"]
+
+		if cfg.platform == "iOS" then
+			settings['SDKROOT'] = "iphoneos"
+			settings['CODE_SIGN_IDENTITY'] = "iPhone Developer"
+		end
 
 		--ms This is the default so don;t write it
 		--settings['SDKROOT'] = 'macosx'
