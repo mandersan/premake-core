@@ -62,7 +62,9 @@
 				if list then
 					if type(list) == "table" then
 						for _,v in pairs(list) do
-							if string.find(item, v) then
+							-- mandersan - string.find() doesn't work right with '@' in filenames.
+							--if string.find(item, v) then
+							if item == v then
 								return true
 							end
 						end
@@ -994,6 +996,12 @@
 		end
 
 		settings['GCC_C_LANGUAGE_STANDARD'] = 'gnu99'
+
+		if cfg.flags['C++14'] then
+			settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++14'
+		elseif cfg.flags['C++11'] then
+			settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++0x'
+		end
 
 		if cfg.exceptionhandling == p.OFF then
 			settings['GCC_ENABLE_CPP_EXCEPTIONS'] = 'NO'
