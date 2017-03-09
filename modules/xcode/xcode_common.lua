@@ -886,7 +886,7 @@
 
 		settings['ALWAYS_SEARCH_USER_PATHS'] = 'NO'
 
-		if not (cfg.symbols == p.ON) then
+		if cfg.symbols ~= p.OFF then
 			settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
 		end
 
@@ -991,7 +991,7 @@
 
 		settings['CONFIGURATION_TEMP_DIR'] = '$(OBJROOT)'
 
-		if cfg.symbols == p.ON then
+		if config.isDebugBuild(cfg) then
 			settings['COPY_PHASE_STRIP'] = 'NO'
 		end
 
@@ -1027,7 +1027,11 @@
 			settings['GCC_PREFIX_HEADER'] = cfg.pchheader
 		end
 
-		settings['GCC_PREPROCESSOR_DEFINITIONS'] = cfg.defines
+		local escapedDefines = { }
+		for i,v in ipairs(cfg.defines) do
+			escapedDefines[i] = escapeArg(v)
+		end
+		settings['GCC_PREPROCESSOR_DEFINITIONS'] = escapedDefines
 
 		settings["GCC_SYMBOLS_PRIVATE_EXTERN"] = 'NO'
 
@@ -1042,7 +1046,16 @@
 		for i,v in ipairs(includedirs) do
 			cfg.includedirs[i] = premake.quoted(v)
 		end
-		settings['HEADER_SEARCH_PATHS'] = table.join(cfg.includedirs, cfg.sysincludedirs)
+		settings['USER_HEADER_SEARCH_PATHS'] = cfg.includedirs
+
+		local sysincludedirs = project.getrelative(cfg.project, cfg.sysincludedirs)
+		for i,v in ipairs(sysincludedirs) do
+			cfg.sysincludedirs[i] = premake.quoted(v)
+		end
+		if not table.isempty(cfg.sysincludedirs) then
+			table.insert(cfg.sysincludedirs, "$(inherited)")
+		end
+		settings['HEADER_SEARCH_PATHS'] = cfg.sysincludedirs
 
 		for i,v in ipairs(cfg.libdirs) do
 			cfg.libdirs[i] = premake.project.getrelative(cfg.project, cfg.libdirs[i])

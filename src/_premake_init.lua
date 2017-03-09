@@ -449,6 +449,12 @@
 	}
 
 	api.register {
+		name = "functionlevellinking",
+		scope = "config",
+		kind = "boolean"
+	}
+
+	api.register {
 		name = "flags",
 		scope = "config",
 		kind  = "list:string",
@@ -503,6 +509,9 @@
 			"WPF",
 			"C++11",
 			"C++14",
+			"C90",
+			"C99",
+			"C11",
 		},
 		aliases = {
 			FatalWarnings = { "FatalWarnings", "FatalCompileWarnings", "FatalLinkWarnings" },
@@ -521,6 +530,12 @@
 			"Fast",
 			"Strict",
 		}
+	}
+
+	api.register {
+		name = "floatingpointexceptions",
+		scope = "config",
+		kind = "boolean"
 	}
 
 	api.register {
@@ -653,7 +668,13 @@
 		kind = "list:directory",
 		tokens = true,
 	}
-
+	
+	api.register {
+		name = "intrinsics",
+		scope = "config",
+		kind = "boolean"
+	}
+	
 	api.register {
 		name = "bindirs",
 		scope = "config",
@@ -699,6 +720,12 @@
 		scope = "config",
 		kind = "list:directory",
 		tokens = true,
+	}
+
+	api.register {
+		name = "linkbuildoutputs",
+		scope = "config",
+		kind = "boolean"
 	}
 
 	api.register {
@@ -961,6 +988,12 @@
 	}
 
 	api.register {
+		name = "stringpooling",
+		scope = "config",
+		kind = "boolean"
+	}
+
+	api.register {
 		name = "symbols",
 		scope = "config",
 		kind = "string",
@@ -969,6 +1002,7 @@
 			"On",
 			"Off",
 			"FastLink",    -- Visual Studio 2015+ only, considered 'On' for all other cases.
+			"Full",        -- Visual Studio 2017+ only, considered 'On' for all other cases.
 		},
 	}
 
