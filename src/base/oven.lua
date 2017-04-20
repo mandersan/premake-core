@@ -181,7 +181,7 @@
 			end
 
 			-- generated files might screw up the object sequences.
-			if prj.hasGeneratedFiles and p.project.iscpp(prj) then
+			if prj.hasGeneratedFiles and p.project.isnative(prj) then
 				oven.assignObjectSequences(prj)
 			end
 		end
@@ -235,7 +235,7 @@
 		-- location. Any path tokens which are expanded in non-path fields
 		-- are made relative to this, ensuring a portable generated project.
 
-		self.location = self.location or wks.location or self.basedir
+		self.location = self.location or self.basedir
 		context.basedir(self, self.location)
 
 		-- This bit could use some work: create a canonical set of configurations
@@ -278,7 +278,7 @@
 		-- to do this up front to make sure the sequence numbers are the same for
 		-- all the tools, even they reorder the source file list.
 
-		if p.project.iscpp(self) then
+		if p.project.isnative(self) then
 			oven.assignObjectSequences(self)
 		end
 	end

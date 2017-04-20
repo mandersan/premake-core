@@ -13,6 +13,10 @@
 #include <CoreFoundation/CFBundle.h>
 #endif
 
+#if PLATFORM_BSD
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
 
 #define ERROR_MESSAGE  "Error: %s\n"
 
@@ -230,9 +234,13 @@ int premake_locate_executable(lua_State* L, const char* argv0)
 	const char* path = NULL;
 
 #if PLATFORM_WINDOWS
-	DWORD len = GetModuleFileNameA(NULL, buffer, PATH_MAX);
+	wchar_t widebuffer[PATH_MAX];
+
+	DWORD len = GetModuleFileNameW(NULL, widebuffer, PATH_MAX);
 	if (len > 0)
 	{
+		WideCharToMultiByte(CP_UTF8, 0, widebuffer, len, buffer, PATH_MAX, NULL, NULL);
+
 		buffer[len] = 0;
 		path = buffer;
 	}
@@ -258,6 +266,17 @@ int premake_locate_executable(lua_State* L, const char* argv0)
 	int len = readlink("/proc/curproc/file", buffer, PATH_MAX - 1);
 	if (len < 0)
 		len = readlink("/proc/curproc/exe", buffer, PATH_MAX - 1);
+	if (len < 0)
+	{
+		int mib[4];
+		mib[0] = CTL_KERN;
+		mib[1] = KERN_PROC;
+		mib[2] = KERN_PROC_PATHNAME;
+		mib[3] = -1;
+		size_t cb = sizeof(buffer);
+		sysctl(mib, 4, buffer, &cb, NULL, 0);
+		len = (int)cb;
+	}
 	if (len > 0)
 	{
 		buffer[len] = 0;
@@ -321,7 +340,7 @@ int premake_locate_executable(lua_State* L, const char* argv0)
 int premake_test_file(lua_State* L, const char* filename, int searchMask)
 {
 	if (searchMask & TEST_LOCAL) {
-		if (do_isfile(filename)) {
+		if (do_isfile(L, filename)) {
 			lua_pushcfunction(L, path_getabsolute);
 			lua_pushstring(L, filename);
 			lua_call(L, 1, 1);

@@ -40,7 +40,8 @@
 		rtti "Off"
 		pic "On"
 		symbols "On"
-		flags { "NoBufferSecurityCheck", "C++11" }
+		language "C++11"
+		flags { "NoBufferSecurityCheck" }
 		buildoptions { "-opt1", "-opt2" }
 		prepare()
 		codelite.project.compiler(cfg)
@@ -89,20 +90,16 @@
 		codelite.project.linker(cfg)
 		test.capture [[
       <Linker Required="yes" Options="">
-        <LibraryPath Value="test" />
-        <LibraryPath Value="test2" />
       </Linker>
 		]]
 	end
 
 	function suite.OnProjectCfg_Libs()
-		links { "lib", "lib2" }
+		links { "a", "b" }
 		prepare()
 		codelite.project.linker(cfg)
 		test.capture [[
-      <Linker Required="yes" Options="">
-        <Library Value="lib" />
-        <Library Value="lib2" />
+      <Linker Required="yes" Options="-la;-lb">
       </Linker>
 		]]
 	end
@@ -221,7 +218,7 @@ cmd2</StartupCommands>
 	end
 
 	function suite.OnProject_Completion()
-		flags { "C++11" }
+		language "C++11"
 		prepare()
 		codelite.project.completion(prj)
 		test.capture [[

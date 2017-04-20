@@ -984,7 +984,7 @@
 
 	function m.compileAs(cfg, toolset)
 		local cfg, filecfg = config.normalize(cfg)
-		local c = project.isc(cfg)
+		local c = p.languages.isc(cfg.language)
 		if filecfg then
 			if path.iscfile(filecfg.name) ~= c then
 				if path.iscppfile(filecfg.name) then
@@ -1121,11 +1121,8 @@
 
 
 	function m.entryPointSymbol(cfg, toolset)
-		if (cfg.kind == "ConsoleApp" or cfg.kind == "WindowedApp") and
-			not cfg.flags.WinMain and
-			not toolset
-		then
-			p.w('EntryPointSymbol="mainCRTStartup"')
+		if cfg.entrypoint then
+			p.w('EntryPointSymbol="%s"', cfg.entrypoint)
 		end
 	end
 
