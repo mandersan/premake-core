@@ -91,7 +91,7 @@
 			end
 		end
 
-		local msg = string.format(format, unpack(arg))
+		local msg = string.format(format, table.unpack(arg))
 		error(debug.traceback(msg, depth), depth)
 	end
 
@@ -140,7 +140,7 @@
 			end
 		else
 			if (expected ~= actual) then
-				m.fail(depth, "expected %s but was %s", expected, actual)
+				m.fail(depth, "expected %s but was %s", expected, actual or "nil")
 			end
 		end
 		return true

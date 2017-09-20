@@ -301,9 +301,10 @@
 	function m.preBuild(cfg)
 		if #cfg.prebuildcommands > 0 then
 			_p(3, '<PreBuild>')
-			for _, commands in ipairs(cfg.prebuildcommands) do
+			local commands = os.translateCommandsAndPaths(cfg.prebuildcommands, cfg.project.basedir, cfg.project.location)
+			for _, command in ipairs(commands) do
 				_x(4, '<Command Enabled="yes">%s</Command>',
-				p.esc(commands))
+				p.esc(command))
 			end
 			_p(3, '</PreBuild>')
 		end
@@ -312,9 +313,10 @@
 	function m.postBuild(cfg)
 		if #cfg.postbuildcommands > 0 then
 			_p(3, '<PostBuild>')
-			for _, commands in ipairs(cfg.postbuildcommands) do
+			local commands = os.translateCommandsAndPaths(cfg.postbuildcommands, cfg.project.basedir, cfg.project.location)
+			for _, command in ipairs(commands) do
 				_x(4, '<Command Enabled="yes">%s</Command>',
-				p.esc(commands))
+				p.esc(command))
 			end
 			_p(3, '</PostBuild>')
 		end
@@ -355,11 +357,11 @@
 	end
 
 	function m.isCpp11(cfg)
-		return (cfg.language == 'gnu++11') or (cfg.language == 'C++11') or cfg.flags["C++11"]
+		return (cfg.cppdialect == 'gnu++11') or (cfg.cppdialect == 'C++11')
 	end
 
 	function m.isCpp14(cfg)
-		return (cfg.language == 'gnu++14') or (cfg.language == 'C++14') or cfg.flags["C++14"]
+		return (cfg.cppdialect == 'gnu++14') or (cfg.cppdialect == 'C++14')
 	end
 
 	function m.completion(cfg)

@@ -41,7 +41,11 @@
 ---
 
 	function m.installModuleLoader()
-		table.insert(package.loaders, 2, m.moduleLoader)
+		if not os.ishost('windows') then
+			local premakeDir = path.getdirectory(_PREMAKE_COMMAND)
+			package.cpath = package.cpath .. ';' .. premakeDir .. '/?.so'
+		end
+		table.insert(package.searchers, 2, m.moduleLoader)
 	end
 
 	function m.moduleLoader(name)

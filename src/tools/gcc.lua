@@ -78,6 +78,7 @@
 		},
 		warnings = {
 			Extra = "-Wall -Wextra",
+			High = "-Wall",
 			Off = "-w",
 		},
 		symbols = {
@@ -86,12 +87,7 @@
 	}
 
 	gcc.cflags = {
-		flags = {
-			["C90"] = "-std=gnu90",
-			["C99"] = "-std=gnu99",
-			["C11"] = "-std=gnu11",
-		},
-		language = {
+		cdialect = {
 			["C89"] = "-std=c89",
 			["C90"] = "-std=c90",
 			["C99"] = "-std=c99",
@@ -136,18 +132,16 @@
 		},
 		flags = {
 			NoBufferSecurityCheck = "-fno-stack-protector",
-			["C++11"] = "-std=c++11",
-			["C++14"] = "-std=c++14",
 		},
-		language = {
+		cppdialect = {
 			["C++98"] = "-std=c++98",
 			["C++11"] = "-std=c++11",
 			["C++14"] = "-std=c++14",
-			["C++17"] = "-std=c++17",
+			["C++17"] = "-std=c++1z",
 			["gnu++98"] = "-std=gnu++98",
 			["gnu++11"] = "-std=gnu++11",
 			["gnu++14"] = "-std=gnu++14",
-			["gnu++17"] = "-std=gnu++17",
+			["gnu++17"] = "-std=gnu++1z",
 		},
 		rtti = {
 			Off = "-fno-rtti"
@@ -271,6 +265,24 @@
 	end
 
 --
+-- get the right output flag.
+--
+	function gcc.getsharedlibarg(cfg)
+		if cfg.system == p.MACOSX then
+			if cfg.sharedlibtype == "OSXBundle" then
+				return "-bundle"
+			elseif cfg.sharedlibtype == "OSXFramework" then
+				return "-framework"
+			else
+				return "-dynamiclib"
+			end
+		else
+			return "-shared"
+		end
+	end
+
+
+--
 -- Return a list of LDFLAGS for a specific configuration.
 --
 
@@ -289,7 +301,7 @@
 		},
 		kind = {
 			SharedLib = function(cfg)
-				local r = { iif(cfg.system == p.MACOSX, "-dynamiclib", "-shared") }
+				local r = { gcc.getsharedlibarg(cfg) }
 				if cfg.system == p.WINDOWS and not cfg.flags.NoImportLib then
 					table.insert(r, '-Wl,--out-implib="' .. cfg.linktarget.relpath .. '"')
 				elseif cfg.system == p.LINUX then

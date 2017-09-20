@@ -145,6 +145,7 @@
 		kind = "string",
 		allowed = {
 			"Default",
+			"ASCII",
 			"MBCS",
 			"Unicode",
 		}
@@ -181,6 +182,17 @@
 		name = "compilebuildoutputs",
 		scope = "config",
 		kind = "boolean"
+	}
+
+	api.register {
+		name = "compileas",
+		scope = "config",
+		kind = "string",
+		allowed = {
+			"Default",
+			"C",
+			"C++",
+		}
 	}
 
 	api.register {
@@ -695,10 +707,59 @@
 	}
 
 	api.register {
+		name = "sharedlibtype",
+		scope = "project",
+		kind = "string",
+		allowed = {
+			"OSXBundle",
+			"OSXFramework",
+		},
+	}
+
+	api.register {
 		name = "language",
+		scope = "project",
+		kind = "string",
+		allowed = {
+			"C",
+			"C++",
+			"C#",
+			"F#"
+		}
+	}
+
+	api.register {
+		name = "cdialect",
 		scope = "config",
 		kind = "string",
-		allowed = p.languages.all
+		allowed = {
+			"Default",
+			"C89",
+			"C90",
+			"C99",
+			"C11",
+			"gnu89",
+			"gnu90",
+			"gnu99",
+			"gnu11",
+		}
+	}
+
+	api.register {
+		name = "cppdialect",
+		scope = "config",
+		kind = "string",
+		allowed = {
+			"Default",
+			"C++98",
+			"C++11",
+			"C++14",
+			"C++17",
+			"gnu++98",
+			"gnu++11",
+			"gnu++14",
+			"gnu++17",
+		}
 	}
 
 	api.register {
@@ -952,6 +1013,16 @@
 	}
 
 	api.register {
+		name = "resourcegenerator",
+		scope = "project",
+		kind = "string",
+        allowed = {
+            "internal",
+            "public"
+        }
+	}
+
+	api.register {
 		name = "rtti",
 		scope = "config",
 		kind = "string",
@@ -1035,6 +1106,7 @@
 			"aix",
 			"bsd",
 			"haiku",
+			"ios",
 			"linux",
 			"macosx",
 			"solaris",
@@ -1048,6 +1120,18 @@
 		name = "systemversion",
 		scope = "project",
 		kind = "string",
+	}
+
+	api.register {
+		name = "tags",
+		scope = "config",
+		kind = "list:string",
+	}
+
+	api.register {
+		name = "tailcalls",
+		scope = "config",
+		kind = "boolean"
 	}
 
 	api.register {
@@ -1093,7 +1177,9 @@
 			value = value:lower()
 			local tool, version = p.tools.canonical(value)
 			if tool then
-				return value
+				return p.tools.normalize(value)
+			else
+				return nil
 			end
 		end,
 	}
@@ -1172,6 +1258,7 @@
 		allowed = {
 			"Off",
 			"Default",
+			"High",
 			"Extra",
 		}
 	}
@@ -1186,6 +1273,17 @@
 		name = "editorintegration",
 		scope = "workspace",
 		kind = "boolean",
+	}
+
+	api.register {
+		name = "preferredtoolarchitecture",
+		scope = "workspace",
+		kind = "string",
+		allowed = {
+			"Default",
+			p.X86,
+			p.X86_64,
+		}
 	}
 
 -----------------------------------------------------------------------------
@@ -1368,11 +1466,45 @@
 
 	-- 31 January 2017
 
-	api.deprecateValue("flags", "C++11", 'Use `language "C++11"` instead', function(value) end, function(value) end)
-	api.deprecateValue("flags", "C++14", 'Use `language "C++14"` instead', function(value) end, function(value) end)
-	api.deprecateValue("flags", "C90",   'Use `language "C90"` instead',   function(value) end, function(value) end)
-	api.deprecateValue("flags", "C99",   'Use `language "C99"` instead',   function(value) end, function(value) end)
-	api.deprecateValue("flags", "C11",   'Use `language "C11"` instead',   function(value) end, function(value) end)
+	api.deprecateValue("flags", "C++11", 'Use `cppdialect "C++11"` instead',
+	function(value)
+		cppdialect "C++11"
+	end,
+	function(value)
+		cppdialect "Default"
+	end)
+
+	api.deprecateValue("flags", "C++14", 'Use `cppdialect "C++14"` instead',
+	function(value)
+		cppdialect "C++14"
+	end,
+	function(value)
+		cppdialect "Default"
+	end)
+
+	api.deprecateValue("flags", "C90",   'Use `cdialect "gnu90"` instead',
+	function(value)
+		cdialect "gnu90"
+	end,
+	function(value)
+		cdialect "Default"
+	end)
+
+	api.deprecateValue("flags", "C99",   'Use `cdialect "gnu99"` instead',
+	function(value)
+		cdialect "gnu99"
+	end,
+	function(value)
+		cdialect "Default"
+	end)
+
+	api.deprecateValue("flags", "C11",   'Use `cdialect "gnu11"` instead',
+	function(value)
+		cdialect "gnu11"
+	end,
+	function(value)
+		cdialect "Default"
+	end)
 
 
 	-- 13 April 2017
@@ -1482,6 +1614,13 @@
 		description = "Display version information"
 	}
 
+	if http ~= nil then
+		newoption {
+			trigger = "insecure",
+			description = "forfit SSH certification checks."
+		}
+	end
+
 
 -----------------------------------------------------------------------------
 --
@@ -1519,7 +1658,7 @@
 
 	-- Windows and friends.
 
-	filter { "system:Windows or language:C#", "kind:ConsoleApp or WindowedApp" }
+	filter { "system:Windows or language:C# or language:F#", "kind:ConsoleApp or WindowedApp" }
 		targetextension ".exe"
 
 	filter { "system:Xbox360", "kind:ConsoleApp or WindowedApp" }
@@ -1534,7 +1673,7 @@
 		targetprefix ""
 		targetextension ".lib"
 
-	filter { "language:C#", "kind:SharedLib" }
+	filter { "language:C# or language:F#", "kind:SharedLib" }
 		targetprefix ""
 		targetextension ".dll"
 		implibextension ".dll"
@@ -1544,8 +1683,5 @@
 
 	filter { "system:macosx" }
 		toolset "clang"
-
-	filter { "system:windows", "kind:WindowedApp or ConsoleApp" }
-		entrypoint "mainCRTStartup"
 
 	filter {}

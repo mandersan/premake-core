@@ -181,6 +181,12 @@
 		test.contains("/W0", msc.getcflags(cfg))
 	end
 
+	function suite.cflags_OnHighWarnings()
+		warnings "High"
+		prepare()
+		test.contains("/W4", msc.getcflags(cfg))
+	end
+
 	function suite.cflags_OnExtraWarnings()
 		warnings "Extra"
 		prepare()
@@ -412,6 +418,12 @@
 		characterset "MBCS"
 		prepare()
 		test.contains('/D"_MBCS"', msc.getdefines(cfg.defines, cfg))
+	end
+
+	function suite.cflags_onCharSetASCII()
+		characterset "ASCII"
+		prepare()
+		test.excludes({'/D"_MBCS"', '/D"_UNICODE"'}, msc.getdefines(cfg.defines, cfg))
 	end
 
 

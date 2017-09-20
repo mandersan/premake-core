@@ -84,6 +84,7 @@
 		},
 		warnings = {
 			Extra = "/W4",
+			High = "/W4",
 			Off = "/W0",
 		},
 		stringpooling = {
@@ -138,6 +139,7 @@
 			Default = { '/D"_UNICODE"', '/D"UNICODE"' },
 			MBCS = '/D"_MBCS"',
 			Unicode = { '/D"_UNICODE"', '/D"UNICODE"' },
+			ASCII = { },
 		}
 	}
 

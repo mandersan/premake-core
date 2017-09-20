@@ -63,15 +63,16 @@
 		context.addFilter(self, "_ACTION", _ACTION)
 		context.addFilter(self, "action", _ACTION)
 
-		self.system = self.system or p.action.current().targetos or os.target()
-		context.addFilter(self, "system", self.system)
+		self.system = self.system or os.target()
+		context.addFilter(self, "system", os.getSystemTags(self.system))
+		context.addFilter(self, "host", os.getSystemTags(os.host()))
 
 		-- Add command line options to the filtering options
 		local options = {}
 		for key, value in pairs(_OPTIONS) do
 			local term = key
 			if value ~= "" then
-				term = term .. "=" .. value
+				term = term .. "=" .. tostring(value)
 			end
 			table.insert(options, term)
 		end
@@ -204,9 +205,11 @@
 		-- Now filter on the current system and architecture, allowing the
 		-- values that might already in the context to override my defaults.
 
-		self.system = self.system or p.action.current().targetos or os.target()
-		context.addFilter(self, "system", self.system)
+		self.system = self.system or os.target()
+		context.addFilter(self, "system", os.getSystemTags(self.system))
+		context.addFilter(self, "host", os.getSystemTags(os.host()))
 		context.addFilter(self, "architecture", self.architecture)
+		context.addFilter(self, "tags", self.tags)
 
 		-- The kind is a configuration level value, but if it has been set at the
 		-- project level allow that to influence the other project-level results.
@@ -248,6 +251,7 @@
 
 		-- Don't allow a project-level system setting to influence the configurations
 
+		local projectSystem = self.system
 		self.system = nil
 
 		-- Finally, step through the list of configurations I built above and
@@ -281,6 +285,9 @@
 		if p.project.isnative(self) then
 			oven.assignObjectSequences(self)
 		end
+
+		-- at the end, restore the system, so it's usable elsewhere.
+		self.system = projectSystem
 	end
 
 
@@ -528,9 +535,9 @@
 		-- More than a convenience; this is required to work properly with
 		-- external Visual Studio project files.
 
-		local system = p.action.current().targetos or os.target()
+		local system = os.target()
 		local architecture = nil
-		local toolset = nil
+		local toolset = p.action.current().toolset
 
 		if platform then
 			system = p.api.checkValue(p.fields.system, platform) or system
@@ -580,7 +587,8 @@
 
 		-- allow the project script to override the default system
 		ctx.system = ctx.system or system
-		context.addFilter(ctx, "system", ctx.system)
+		context.addFilter(ctx, "system", os.getSystemTags(ctx.system))
+		context.addFilter(ctx, "host", os.getSystemTags(os.host()))
 
 		-- allow the project script to override the default architecture
 		ctx.architecture = ctx.architecture or architecture
@@ -592,6 +600,9 @@
 
 		-- if a kind is set, allow that to influence the configuration
 		context.addFilter(ctx, "kind", ctx.kind)
+
+		-- if tags are set, allow that to influence the configuration
+		context.addFilter(ctx, "tags", ctx.tags)
 
 		-- if any extra filters were specified, can include them now
 		if extraFilters then
@@ -634,20 +645,20 @@
 		-- I need to look at them all.
 
 		for cfg in p.project.eachconfig(prj) do
-			local function addFile(fname)
+			local function addFile(fname, i)
 
 				-- If this is the first time I've seen this file, start a new
 				-- file configuration for it. Track both by key for quick lookups
 				-- and indexed for ordered iteration.
-
-				if not files[fname] then
-					local fcfg = p.fileconfig.new(fname, prj)
+				local fcfg = files[fname]
+				if not fcfg then
+					fcfg = p.fileconfig.new(fname, prj)
+					fcfg.order = i
 					files[fname] = fcfg
 					table.insert(files, fcfg)
 				end
 
-				p.fileconfig.addconfig(files[fname], cfg)
-
+				p.fileconfig.addconfig(fcfg, cfg)
 			end
 
 			table.foreachi(cfg.files, addFile)
@@ -688,7 +699,7 @@
 
 			-- Only consider sources that actually generate object files
 
-			if not path.iscppfile(file.abspath) then
+			if not path.isnativefile(file.abspath) then
 				return
 			end
 

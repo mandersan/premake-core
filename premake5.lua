@@ -127,7 +127,7 @@
 		targetname  "premake5"
 		language    "C"
 		kind        "ConsoleApp"
-		includedirs { "contrib/lua/src" }
+		includedirs { "contrib/lua/src", "contrib/luashim" }
 		links       { "lua-lib" }
 
 		-- optional 3rd party libraries
@@ -144,11 +144,13 @@
 		{
 			"*.txt", "**.lua",
 			"src/**.h", "src/**.c",
+			"modules/**"
 		}
 
 		excludes
 		{
-			"contrib/**.*"
+			"contrib/**.*",
+			"binmodules/**.*"
 		}
 
 		filter "configurations:Debug"
@@ -177,7 +179,7 @@
 
 		filter "system:macosx"
 			defines     { "LUA_USE_MACOSX" }
-			links       { "CoreServices.framework", "Foundation.framework", "Security.framework" }
+			links       { "CoreServices.framework", "Foundation.framework", "Security.framework", "readline" }
 
 		filter { "system:macosx", "action:gmake" }
 			toolset "clang"
@@ -193,6 +195,7 @@
 	-- optional 3rd party libraries
 	group "contrib"
 		include "contrib/lua"
+		include "contrib/luashim"
 		if not _OPTIONS["no-zlib"] then
 			include "contrib/zlib"
 			include "contrib/libzip"
@@ -201,6 +204,9 @@
 			include "contrib/mbedtls"
 			include "contrib/curl"
 		end
+
+	group "Binary Modules"
+		include "binmodules/example"
 
 --
 -- A more thorough cleanup.

@@ -1,8 +1,8 @@
---
+---
 -- tests/base/test_os.lua
 -- Automated test suite for the new OS functions.
--- Copyright (c) 2008-2014 Jason Perkins and the Premake project
---
+-- Copyright (c) 2008-2017 Jason Perkins and the Premake project
+---
 
 	local suite = test.declare("base_os")
 
@@ -34,6 +34,16 @@
 
 	function suite.findlib_FailsOnBadLibName()
 		test.isfalse(os.findlib("NoSuchLibraryAsThisOneHere"))
+	end
+
+	function suite.findheader_stdheaders()
+		if not os.istarget("windows") and not os.istarget("macosx") then
+			test.istrue(os.findheader("stdlib.h"))
+		end
+	end
+
+	function suite.findheader_failure()
+		test.isfalse(os.findheader("Knights/who/say/Ni.hpp"))
 	end
 
 
@@ -83,8 +93,8 @@
 	end
 
 	function suite.matchfiles_OnSubfolderMatch()
-		local result = os.matchfiles("**/vc2010/*")
-		test.istrue(table.contains(result, "actions/vstudio/vc2010/test_globals.lua"))
+		local result = os.matchfiles("**/subfolder/*")
+		test.istrue(table.contains(result, "folder/subfolder/hello.txt"))
 		test.isfalse(table.contains(result, "premake4.lua"))
 	end
 
@@ -281,3 +291,22 @@
 		local version = os.getversion();
 		test.istrue(version ~= nil)
 	end
+
+
+
+--
+-- os.translateCommandsAndPaths.
+--
+
+	function suite.translateCommandsAndPaths()
+		test.isequal('cmdtool "../foo/path1"', os.translateCommandsAndPaths("cmdtool %[path1]", '../foo', '.', 'osx'))
+	end
+
+	function suite.translateCommandsAndPaths_PreserveSlash()
+		test.isequal('cmdtool "../foo/path1/"', os.translateCommandsAndPaths("cmdtool %[path1/]", '../foo', '.', 'osx'))
+	end
+
+	function suite.translateCommandsAndPaths_MultipleTokens()
+		test.isequal('cmdtool "../foo/path1" "../foo/path2/"', os.translateCommandsAndPaths("cmdtool %[path1] %[path2/]", '../foo', '.', 'osx'))
+	end
+
