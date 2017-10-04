@@ -494,7 +494,7 @@
 
 			if #manifests > 0 then
 		p.push('<Manifest>')
-		m.element("AdditionalManifestFiles", nil, "%s %%(AdditionalManifestFiles)", table.concat(manifests, " "))
+		m.element("AdditionalManifestFiles", nil, "%s;%%(AdditionalManifestFiles)", table.concat(manifests, ";"))
 		p.pop('</Manifest>')
 	end
 		end
@@ -2050,7 +2050,7 @@
 		end
 		if version then
 			if cfg.kind == p.NONE or cfg.kind == p.MAKEFILE then
-				if p.config.hasFile(cfg, path.iscppfile) then
+				if p.config.hasFile(cfg, path.iscppfile) or _ACTION >= "vs2015" then
 					m.element("PlatformToolset", nil, version)
 				end
 			else
@@ -2199,6 +2199,8 @@
 		local runtimes = {
 			StaticDebug   = "MultiThreadedDebug",
 			StaticRelease = "MultiThreaded",
+			StaticDLLDebug = "MultiThreadedDebugDLL",
+			StaticDLLRelease = "MultiThreadedDLL"
 		}
 		local runtime = runtimes[config.getruntime(cfg)]
 		if runtime then
