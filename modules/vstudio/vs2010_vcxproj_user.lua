@@ -55,7 +55,7 @@
 	function m.userProject()
 		local action = p.action.current()
 		p.push('<Project ToolsVersion="%s" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
-			action.vstudio.toolsVersion)
+				action.vstudio.userToolsVersion or action.vstudio.toolsVersion)
 	end
 
 
@@ -79,7 +79,17 @@
 
 
 	function m.debuggerFlavor(cfg)
-		if cfg.debugdir or cfg.debugcommand then
+		local map = {
+			Local = "WindowsLocalDebugger",
+			Remote = "WindowsRemoteDebugger",
+			WebBrowser = "WebBrowserDebugger",
+			WebService = "WebServiceDebugger"
+		}
+
+		local value = map[cfg.debuggerflavor]
+		if value then
+			p.w('<DebuggerFlavor>%s</DebuggerFlavor>', value)
+		elseif cfg.debugdir or cfg.debugcommand then
 			p.w('<DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>')
 		end
 	end
@@ -103,7 +113,8 @@
 
 	function m.localDebuggerCommandArguments(cfg)
 		if #cfg.debugargs > 0 then
-			p.x('<LocalDebuggerCommandArguments>%s</LocalDebuggerCommandArguments>', table.concat(cfg.debugargs, " "))
+			local args = os.translateCommandsAndPaths(cfg.debugargs, cfg.project.basedir, cfg.project.location)
+			p.x('<LocalDebuggerCommandArguments>%s</LocalDebuggerCommandArguments>', table.concat(args, " "))
 		end
 	end
 

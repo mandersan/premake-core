@@ -1,4 +1,4 @@
-﻿/**
+/**
  * \file   premake.h
  * \brief  Program-wide constants and definitions.
  * \author Copyright (c) 2002-2015 Jason Perkins and the Premake project
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 #define PREMAKE_VERSION        "5.0.0-dev"
-#define PREMAKE_COPYRIGHT      "Copyright (C) 2002-2017 Jason Perkins and the Premake Project"
+#define PREMAKE_COPYRIGHT      "Copyright (C) 2002-2018 Jason Perkins and the Premake Project"
 #define PREMAKE_PROJECT_URL    "https://github.com/premake/premake-core/wiki"
 
 /* Identify the current platform I'm not sure how to reliably detect
@@ -53,6 +53,7 @@
 #else
 #include <unistd.h>
 #endif
+#include <stdint.h>
 
 /* not all platforms define this */
 #ifndef FALSE
@@ -85,10 +86,11 @@ extern const char* scripts_path;
 
 /* Bootstrapping helper functions */
 int do_chdir(lua_State* L, const char* path);
-unsigned long do_hash(const char* str, int seed);
+uint32_t do_hash(const char* str, int seed);
 void do_getabsolute(char* result, const char* value, const char* relative_to);
 int do_getcwd(char* buffer, size_t size);
 int do_isabsolute(const char* path);
+int do_absolutetype(const char* path);
 int do_isfile(lua_State* L, const char* filename);
 int do_locate(lua_State* L, const char* filename, const char* path);
 void do_normalize(lua_State* L, char* buffer, const char* path);
@@ -108,6 +110,9 @@ int path_getabsolute(lua_State* L);
 int path_getrelative(lua_State* L);
 int path_isabsolute(lua_State* L);
 int path_join(lua_State* L);
+int path_deferred_join(lua_State* L);
+int path_has_deferred_join(lua_State* L);
+int path_resolve_deferred_join(lua_State* L);
 int path_normalize(lua_State* L);
 int path_translate(lua_State* L);
 int path_wildcards(lua_State* L);

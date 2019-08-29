@@ -1,4 +1,4 @@
-﻿/**
+/**
  * \file   premake.c
  * \brief  Program entry point.
  * \author Copyright (c) 2002-2017 Jason Perkins and the Premake project
@@ -49,6 +49,9 @@ static const luaL_Reg path_functions[] = {
 	{ "getrelative", path_getrelative },
 	{ "isabsolute",  path_isabsolute },
 	{ "join", path_join },
+	{ "deferredjoin", path_deferred_join },
+	{ "hasdeferredjoin", path_has_deferred_join },
+	{ "resolvedeferredjoin", path_resolve_deferred_join },
 	{ "normalize", path_normalize },
 	{ "translate", path_translate },
 	{ "wildcards", path_wildcards },
@@ -191,7 +194,7 @@ int premake_init(lua_State* L)
 #endif
 
 	lua_pushlightuserdata(L, &s_shimTable);
-	lua_rawseti(L, LUA_REGISTRYINDEX, 'SHIM');
+	lua_rawseti(L, LUA_REGISTRYINDEX, 0x5348494D); // equal to 'SHIM'
 
 	/* push the application metadata */
 	lua_pushstring(L, LUA_COPYRIGHT);
@@ -267,6 +270,8 @@ static int lua_error_handler(lua_State* L)
 	lua_insert(L, -2);     // insert traceback function before error message
 	lua_pushinteger(L, 3); // push level
 	lua_call(L, 2, 1);     // call traceback
+#else
+	(void) L;
 #endif
 
 	return 1;
@@ -360,7 +365,7 @@ int premake_locate_executable(lua_State* L, const char* argv0)
 	}
 #endif
 
-#if PLATFORM_BSD
+#if PLATFORM_BSD && !defined(__OpenBSD__)
 	int len = readlink("/proc/curproc/file", buffer, PATH_MAX - 1);
 	if (len < 0)
 		len = readlink("/proc/curproc/exe", buffer, PATH_MAX - 1);
@@ -404,6 +409,7 @@ int premake_locate_executable(lua_State* L, const char* argv0)
 			lua_concat(L, 3);
 			path = lua_tostring(L, -1);
 		}
+		lua_pop(L, 1);
 	}
 
 	/* If all else fails, use argv[0] as-is and hope for the best */
@@ -414,14 +420,16 @@ int premake_locate_executable(lua_State* L, const char* argv0)
 		lua_pushstring(L, "/");
 		lua_pushstring(L, argv0);
 
-		if (!path_isabsolute(L)) {
+		if (!do_isabsolute(argv0)) {
 			lua_concat(L, 3);
 		}
 		else {
-			lua_pop(L, 1);
+			lua_pop(L, 3);
+			lua_pushstring(L, argv0);
 		}
 
 		path = lua_tostring(L, -1);
+		lua_pop(L, 1);
 	}
 
 	lua_pushstring(L, path);
